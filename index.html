@@ -1,91 +1,112 @@
 ---
-title: Events
+title: Calendar of Activities
 ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#317EFB">
     <meta charset="UTF-8">
     <title>Events</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body.class {
+            background-color: #80cbc4;
+        }
+        .collapsible-body {
+            background-color: #d7ccc8;
+        }
+        .collapsible-header {
+            background-color: #80cbc4;
+        }
+        .collapsible-body {
+            background-color: #80cbc4;
+        }
+    </style>
 </head>
-<body bgcolor="#faebd7">
+<body bgcolor="##223b56">
 <div class="container">
-    <h1>Our Schedule</h1>
+    <h1 class="grey-text text-lighten-5">Our Schedule</h1>
     <ul class="collapsible popout">
-        {% assign today = site.time | date: "%Y-%m-%d" %}
-        {% assign sorted_events = site.events | sort: "start_time_24" | sort: "date" %}
-        {% assign last_date = "" %}
+        {% assign today = site.time | date: "%Y-%m-%d %H:%M" %}
+        {% assign events_sorted = site.events | sort: "sort_key" %}
+        {% assign future_events = "" | split: "" %}
 
-        {% for event in sorted_events %}
-            {% assign event_date_str = event.date | date: "%Y-%m-%d" %}
-            {% if event_date_str >= today %}
-                {% assign event_date_display = event.date | date: "%B %-d, %Y" %}
+        {% for event in events_sorted %}
+        {% if event.sort_key >= today %}
+        {% assign future_events = future_events | push: event %}
+        {% endif %}
+        {% endfor %}
 
-                {% if event_date_display != last_date %}
-                    {% assign last_date = event_date_display %}
-                    <li>
-                        <div class="collapsible-header">
-                            <i class="material-icons">date_range</i>{{ event_date_display }}
-                        </div>
-                {% endif %}
+        {% assign grouped = future_events | group_by_exp: "e", "e.sort_key | slice: 0, 10" %}
 
-                <div class="collapsible-body">
-                    <span>
-                        <div class="card">
-                            <div class="card-content">
-                                <span class="card-title activator grey-text text-darken-4">
-                                    {{ event.title }}
-                                    <i class="material-icons right">more_vert</i>
-                                </span>
-                                <p>{{ event.time }}</p>
-                                {% if event.location %}
-                                <p>{{ event.location }}</p>
-                                {% endif %}
-                                <p>
-                                    {% assign attendees = event.attendee %}
-                                    {% if attendees contains 'family' %}
-                                        <i class="material-icons black-text">people</i>
-                                    {% else %}
-                                        {% assign attendees_array = attendees | join: ',' | split: ',' %}
-                                        {% for person in attendees_array %}
-                                            {% assign color = "blue-text" %}
-                                            {% if person == "zhemira" %}
-                                                {% assign color = "pink-text" %}
-                                            {% elsif person == "melvin" %}
-                                                {% assign color = "green-text" %}
-                                            {% elsif person == "merrick" %}
-                                                {% assign color = "blue-text" %}
-                                            {% elsif person == "zmae" %}
-                                                {% assign color = "red-text" %}
-                                            {% endif %}
-                                            <i class="material-icons {{ color }}">person</i>
-                                        {% endfor %}
-                                    {% endif %}
-                                </p>
-                            </div>
-                            <div class="card-reveal">
-                                <span class="card-title grey-text text-darken-4">{{ event.title }}<i class="material-icons right">close</i></span>
-                                <p>{{ event.time }}</p>
-                                {% if event.location %}
-                                <p>{{ event.location }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </span>
+        <ul class="collapsible popout" data-collapsible="accordion">
+            {% for group in grouped %}
+            <li>
+                <div class="collapsible-header">
+                    <i class="material-icons">date_range</i>
+                    {{ group.name | date: "%B %-d, %Y" }}
                 </div>
 
-                {% assign next_event = sorted_events[forloop.index] %}
-                {% assign next_event_date = next_event.date | date: "%B %-d, %Y" %}
-                {% if next_event_date != last_date or forloop.last %}
-                    </li>
+                {% for event in group.items %}
+                <div class="collapsible-body">
+        <span>
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title activator grey-text text-darken-4">
+                {{ event.title }}
+                <i class="material-icons right">more_vert</i>
+              </span>
+                <p>{{ event.time }}</p>
+              {% if event.location %}
+                <p>{{ event.location }}</p>
+              {% endif %}
+              <p>
+                {% assign attendees = event.attendee %}
+                {% if attendees contains 'family' %}
+                  <i class="material-icons black-text">people</i>
+                {% else %}
+                  {% assign attendees_array = attendees | join: ',' | split: ',' %}
+                  {% for person in attendees_array %}
+                    {% assign color = "blue-text" %}
+                    {% if person == "zhemira" %}
+                      {% assign color = "pink-text" %}
+                    {% elsif person == "melvin" %}
+                      {% assign color = "green-text" %}
+                    {% elsif person == "merrick" %}
+                      {% assign color = "purple-text" %}
+                    {% endif %}
+                    <i class="material-icons {{ color }}">person</i>
+                  {% endfor %}
                 {% endif %}
-            {% endif %}
-        {% endfor %}
+              </p>
+            </div>
+            <div class="card-reveal">
+              <span class="card-title grey-text text-darken-4">{{ event.title }}<i class="material-icons right">close</i></span>
+              <p>{{ event.sort_key | slice: 11, 5 }}</p>
+              {% if event.location %}
+                <p>{{ event.location }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </span>
+                </div>
+                {% endfor %}
+            </li>
+            {% endfor %}
+        </ul>
     </ul>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('SW registered.', reg));
+    }
+
+</script>
 <script>
     M.AutoInit();
 </script>
