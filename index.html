@@ -1,0 +1,93 @@
+---
+title: Events
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Events</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body bgcolor="#faebd7">
+<div class="container">
+    <h1>Our Schedule</h1>
+    <ul class="collapsible popout">
+        {% assign today = site.time | date: "%Y-%m-%d" %}
+        {% assign sorted_events = site.events | sort: "start_time_24" | sort: "date" %}
+        {% assign last_date = "" %}
+
+        {% for event in sorted_events %}
+            {% assign event_date_str = event.date | date: "%Y-%m-%d" %}
+            {% if event_date_str >= today %}
+                {% assign event_date_display = event.date | date: "%B %-d, %Y" %}
+
+                {% if event_date_display != last_date %}
+                    {% assign last_date = event_date_display %}
+                    <li>
+                        <div class="collapsible-header">
+                            <i class="material-icons">date_range</i>{{ event_date_display }}
+                        </div>
+                {% endif %}
+
+                <div class="collapsible-body">
+                    <span>
+                        <div class="card">
+                            <div class="card-content">
+                                <span class="card-title activator grey-text text-darken-4">
+                                    {{ event.title }}
+                                    <i class="material-icons right">more_vert</i>
+                                </span>
+                                <p>{{ event.time }}</p>
+                                {% if event.location %}
+                                <p>{{ event.location }}</p>
+                                {% endif %}
+                                <p>
+                                    {% assign attendees = event.attendee %}
+                                    {% if attendees contains 'family' %}
+                                        <i class="material-icons black-text">people</i>
+                                    {% else %}
+                                        {% assign attendees_array = attendees | join: ',' | split: ',' %}
+                                        {% for person in attendees_array %}
+                                            {% assign color = "blue-text" %}
+                                            {% if person == "zhemira" %}
+                                                {% assign color = "pink-text" %}
+                                            {% elsif person == "melvin" %}
+                                                {% assign color = "green-text" %}
+                                            {% elsif person == "merrick" %}
+                                                {% assign color = "blue-text" %}
+                                            {% elsif person == "zmae" %}
+                                                {% assign color = "red-text" %}
+                                            {% endif %}
+                                            <i class="material-icons {{ color }}">person</i>
+                                        {% endfor %}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="card-reveal">
+                                <span class="card-title grey-text text-darken-4">{{ event.title }}<i class="material-icons right">close</i></span>
+                                <p>{{ event.time }}</p>
+                                {% if event.location %}
+                                <p>{{ event.location }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </span>
+                </div>
+
+                {% assign next_event = sorted_events[forloop.index] %}
+                {% assign next_event_date = next_event.date | date: "%B %-d, %Y" %}
+                {% if next_event_date != last_date or forloop.last %}
+                    </li>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </ul>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+    M.AutoInit();
+</script>
+</body>
+</html>
